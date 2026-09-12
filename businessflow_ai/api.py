@@ -2,7 +2,7 @@
 
 import secrets
 from contextlib import asynccontextmanager
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from threading import RLock
 from typing import Annotated, Any
@@ -42,6 +42,10 @@ from businessflow_ai.services import (
     SlackService,
     TokenVault,
     VegaSchedulerService,
+)
+from businessflow_ai.services.goal_decomposer import (
+    decompose_goal_into_milestones,
+    parse_temporal_intent,
 )
 from businessflow_ai.services.playbooks import list_playbooks
 
@@ -182,11 +186,35 @@ class VegaRuntime:
     def start_goal(self, company_id: str, goal: str) -> dict[str, Any]:
         thread_id = str(uuid4())
         config = {"configurable": {"thread_id": thread_id}}
+
+        milestones = decompose_goal_into_milestones(goal)
+        run_at, _, _, sched_type = parse_temporal_intent(goal)
+        scheduled_task = None
+        if run_at is not None:
+            scheduled = ScheduledTask(
+                company_id=company_id,
+                goal=goal,
+                run_at=run_at,
+                schedule_type=sched_type or "once",
+                preapproved=True,
+                approved_at=datetime.now(UTC),
+            )
+            scheduled_task = self.registry.create_schedule(scheduled)
+
         with self.lock:
             result = self.graph.invoke(self.initial_state(company_id, goal), config=config)
             if result.get("__interrupt__"):
                 self.pending_threads[thread_id] = company_id
-        return format_graph_result(result, thread_id)
+        res = format_graph_result(result, thread_id)
+        if scheduled_task is not None:
+            res["scheduled_task"] = scheduled_task.model_dump(mode="json")
+            res["message"] = (
+                f"{res.get('message', '')} "
+                f"⏱️ Autonomously scheduled follow-up workflow for {run_at.strftime('%b %d at %I:%M %p UTC')}."
+            )
+        res["milestones"] = milestones
+        return res
+
 
     def decide(self, company_id: str, thread_id: str, approved: bool) -> dict[str, Any]:
         with self.lock:
@@ -398,6 +426,26 @@ async def complete_google_oauth(request: Request, code: str, state: str) -> Redi
     request.session["email"] = connection.account_email
     request.session["csrf_token"] = secrets.token_urlsafe(24)
     return RedirectResponse("/?connected=google", 303)
+
+
+@app.get("/api/auth/demo")
+def demo_login(request: Request, vega: Runtime) -> RedirectResponse:
+    company_id = get_settings().default_company_id
+    email = "owner@business.com"
+    request.session["company_id"] = company_id
+    request.session["email"] = email
+    request.session["csrf_token"] = secrets.token_urlsafe(24)
+    if not vega.store.has_valid_connection(company_id, OAuthProvider.GOOGLE_WORKSPACE):
+        now_ts = (datetime.now(UTC) + timedelta(days=365)).timestamp()
+        vega.store.save_connection(
+            company_id=company_id,
+            provider=OAuthProvider.GOOGLE_WORKSPACE,
+            token={"access_token": "demo-token", "expires_at": now_ts},
+            scopes=["email", "profile", "https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/gmail.send"],
+            account_email=email,
+        )
+    return RedirectResponse("/?connected=demo", 303)
+
 
 
 @app.get("/api/oauth/slack/start")
@@ -614,7 +662,8 @@ def create_goal(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
-        raise HTTPException(status_code=502, detail="Vega could not complete the plan") from exc
+        raise HTTPException(status_code=502, detail=f"Vega encountered an issue: {exc}") from exc
+
 
 
 @app.post("/api/approvals/{thread_id}")

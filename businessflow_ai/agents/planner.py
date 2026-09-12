@@ -96,7 +96,20 @@ class RuleBasedGoalPlanner:
                     responsibility="Record and manage the business spreadsheet log",
                 )
             )
+        if (
+            any(w in lowered for w in ("phone", "voice call", "dial", "vapi", "telephony", "make a call"))
+            or (("call " in lowered or "calling " in lowered) and not any(m in lowered for m in ("meeting", "session", "sync", "standup", "huddle", "conference", "schedule", "sales call")))
+        ):
+            specialists.append(
+                SpecialistRequest(
+                    role="voice_calling",
+                    responsibility="Conduct outbound voice phone outreach with contact",
+                )
+            )
         unique = {request.role: request for request in specialists}
+
+
+
         if not unique:
             raise ValueError("The goal does not match an approved specialist capability")
 
@@ -114,10 +127,11 @@ class GroqGoalPlanner:
 You plan work for a non-technical business owner.
 Return only a structured plan. Select the smallest useful set of specialist roles.
 Allowed roles: meeting, communication, spreadsheet, finance_collection, sales_followup,
-customer_support, inventory, procurement, sales_reporting. Never invent a role,
+customer_support, inventory, procurement, sales_reporting, voice_calling. Never invent a role,
 tool, permission, or completed action.
 The plan only identifies responsibility; deterministic code controls permissions and execution.
 """
+
 
     def __init__(self, api_key: str, model: str) -> None:
         model_client = ChatGroq(api_key=api_key, model=model, temperature=0)

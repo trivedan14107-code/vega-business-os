@@ -10,4 +10,6 @@ __pycache__/
 *.egg-info/
 .sih-build/
 output/
+*.db
 businessflow.db
+

@@ -108,6 +108,15 @@ AGENT_TEMPLATES: dict[str, AgentTemplate] = {
         business_rules=("Record accurate business rows and never delete existing sheets without approval",),
         risk_level=RiskLevel.MEDIUM,
     ),
+    "voice_calling": AgentTemplate(
+        role="voice_calling",
+        responsibilities=("Conduct natural AI voice calls with teammates or clients and execute warm handoffs",),
+        allowed_tools=("voice.call", "voice.synthesize", "voice.transfer_to_owner", "voice.transcribe"),
+        forbidden_tools=("voice.unauthorized_commit", "voice.record_without_notice"),
+        permissions=("initiate_voice_call", "transfer_call_to_owner", "transcribe_call_summary"),
+        business_rules=("Converse strictly on the owner's goal and initiate a warm transfer if complex blockers or human approval are requested",),
+        risk_level=RiskLevel.HIGH,
+    ),
 }
 
 
@@ -116,3 +125,4 @@ def get_agent_template(role: str) -> AgentTemplate:
     if normalized not in AGENT_TEMPLATES:
         raise ValueError(f"Unsupported specialist role: {role}")
     return AGENT_TEMPLATES[normalized]
+
