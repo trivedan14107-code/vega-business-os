@@ -8,6 +8,7 @@ import httpx
 from businessflow_ai.models import AgentDefinition, OAuthProvider
 from businessflow_ai.services.connections import ConnectionStore
 from businessflow_ai.services.execution import ExecutionEngine, MockExecutionEngine
+from businessflow_ai.services.pdf_generator import ExecutivePDFReportGenerator
 
 SLACK_API = "https://slack.com/api"
 
@@ -104,10 +105,12 @@ class SlackExecutionEngine:
         slack: SlackService,
         default_channel_id: str | None = None,
         fallback: ExecutionEngine | None = None,
+        pdf_generator: ExecutivePDFReportGenerator | None = None,
     ) -> None:
         self.slack = slack
         self.default_channel_id = default_channel_id
         self.fallback = fallback or MockExecutionEngine()
+        self.pdf_generator = pdf_generator or ExecutivePDFReportGenerator()
 
     def execute(
         self,
@@ -121,7 +124,7 @@ class SlackExecutionEngine:
 
         is_summary_goal = any(
             w in owner_goal.lower()
-            for w in ("summarise", "summarize", "summary", "read", "chat", "catchup", "messages", "conversation")
+            for w in ("summarise", "summarize", "summary", "read", "chat", "catchup", "messages", "conversation", "pdf")
         )
 
         token: dict[str, Any] = {}
@@ -151,6 +154,18 @@ class SlackExecutionEngine:
                     "• Sarah Connor: Confirmed sync with enterprise client for tomorrow."
                 )
 
+            channel_name = f"#{channel_id}" if channel_id else "#general"
+            pdf_path, pdf_url = self.pdf_generator.generate_slack_summary_pdf(
+                task_id=task_id,
+                channel_name=channel_name,
+                summary_text=chat_summary,
+                action_items=[
+                    "Review deliverable timeline and client feedback points",
+                    "Verify staging database latency optimizations",
+                    "Conduct tomorrow's enterprise client sync session",
+                ],
+            )
+
             return {
                 "execution_id": str(uuid4()),
                 "task_id": task_id,
@@ -161,7 +176,9 @@ class SlackExecutionEngine:
                 "action": "slack.chat_summarized",
                 "success": True,
                 "channel_id": channel_id or "general",
-                "summary": f"Slack Channel Summary ({channel_id or '#general'}):\n{chat_summary}",
+                "summary": f"Slack Channel Summary ({channel_name}):\n{chat_summary}\n\n📄 Executive PDF Report: {pdf_url}",
+                "pdf_url": pdf_url,
+                "pdf_path": str(pdf_path),
                 "message_ts": "1726117200.000100",
             }
 

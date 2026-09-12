@@ -19,6 +19,7 @@ from businessflow_ai.services.google_workspace import (
     GroqMeetingDetailsExtractor,
     MeetingDetails,
 )
+from businessflow_ai.services.pdf_generator import ExecutivePDFReportGenerator
 from businessflow_ai.services.policy import PolicyEngine, PolicyViolation
 from businessflow_ai.services.registry import AgentRegistry
 from businessflow_ai.services.scheduler import VegaSchedulerService
@@ -32,6 +33,7 @@ __all__ = [
     "CapabilitySource",
     "ConnectionStore",
     "ExecutionEngine",
+    "ExecutivePDFReportGenerator",
     "GmailError",
     "GmailExecutionEngine",
     "GmailService",

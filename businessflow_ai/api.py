@@ -556,6 +556,21 @@ def export_business_records(
     return jsonable_encoder(vega.registry.export_business_records(owner["company_id"]))
 
 
+@app.get("/api/reports/{filename}")
+def download_pdf_report(filename: str) -> FileResponse:
+    import re
+    if not re.match(r"^[a-zA-Z0-9_\-]+\.pdf$", filename):
+        raise HTTPException(status_code=400, detail="Invalid report filename")
+    report_file = Path("output") / "reports" / filename
+    if not report_file.is_file():
+        raise HTTPException(status_code=404, detail="PDF report not found")
+    return FileResponse(
+        report_file,
+        media_type="application/pdf",
+        filename=filename,
+        headers={"Content-Disposition": f"inline; filename={filename}"},
+    )
+
 
 @app.get("/api/contacts")
 def list_contacts(

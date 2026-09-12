@@ -1,4 +1,4 @@
-﻿let csrf = "";
+let csrf = "";
 let pendingThread = null;
 let currentTab = "dashboard";
 let dashboardData = null;
@@ -353,12 +353,19 @@ function renderTasks(tasks) {
       subagentExtra = `
         <div class="subagent-results" style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px; width: 100%;">
           ${otherResults.map(r => `
-            <div style="padding: 8px 12px; background: #faf9f5; border: 1px solid #e8e6dc; border-radius: 6px; font-size: 0.84rem;">
+            <div style="padding: 10px 14px; background: #faf9f5; border: 1px solid #e8e6dc; border-radius: 6px; font-size: 0.84rem;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <strong style="color: var(--green); font-size: 12px;">⚙️ ${escapeHtml(humanRole(r.adapter || "Specialist Agent"))}</strong>
                 <span class="badge" style="font-size: 10px;">${escapeHtml(r.outcome_state || "completed")}</span>
               </div>
-              <div style="margin-top: 4px; color: #333;">${escapeHtml(r.summary || JSON.stringify(r))}</div>
+              <div style="margin-top: 4px; color: #333; white-space: pre-line;">${escapeHtml(r.summary || JSON.stringify(r))}</div>
+              ${r.pdf_url ? `
+                <div style="margin-top: 8px;">
+                  <a href="${escapeHtml(r.pdf_url)}" target="_blank" download class="primary small-btn" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+                    📄 Download Executive PDF Brief
+                  </a>
+                </div>
+              ` : ''}
             </div>
           `).join("")}
         </div>
