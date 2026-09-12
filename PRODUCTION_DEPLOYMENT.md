@@ -1,8 +1,31 @@
-# Publish Vega on Render
+# Deploy Vega to Production (Vercel & Render)
 
-The repository includes `render.yaml`, which creates one HTTPS FastAPI service and a
-persistent encrypted disk for Vega's SQLite database. One instance is intentional because
-SQLite and the background scheduler must not be scaled horizontally.
+## Deploy to Vercel (1-Click Serverless)
+
+Vega is pre-configured with native `@vercel/python` serverless support via [`vercel.json`](file:///C:/Users/M%20Trivedan/OneDrive/Documents/ChatGPT/Hackathon-%201/vercel.json), [`api/index.py`](file:///C:/Users/M%20Trivedan/OneDrive/Documents/ChatGPT/Hackathon-%201/api/index.py), and [`requirements.txt`](file:///C:/Users/M%20Trivedan/OneDrive/Documents/ChatGPT/Hackathon-%201/requirements.txt).
+
+### Option A: 1-Click via Vercel Dashboard (Recommended)
+1. Go to **[https://vercel.com/new](https://vercel.com/new)**.
+2. Select your repository: **`trivedan14107-code/vega-business-os`**.
+3. (Optional) Add Environment Variables:
+   - `GROQ_API_KEY`: Your Groq API key for autonomous planning.
+   - `TOKEN_ENCRYPTION_KEY`: A 32-byte Fernet key (optional, auto-generated if omitted).
+   - `GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET`: For Google Workspace integration.
+4. Click **Deploy**. Vercel will build the Python serverless function and launch the web app with an instant HTTPS `*.vercel.app` domain!
+
+### Option B: Deploy via Vercel CLI
+Run:
+```bash
+npx vercel
+```
+Follow the prompts to link your project and deploy.
+
+---
+
+## Publish Vega on Render (Dedicated Persistent Server)
+
+The repository also includes `render.yaml`, which creates an HTTPS FastAPI service and a
+persistent encrypted disk for Vega's SQLite database.
 
 ## 1. Before deployment
 
