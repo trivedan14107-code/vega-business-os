@@ -1,0 +1,13 @@
+authlib>=1.6.0,<2
+cryptography>=45.0.0,<47
+email-validator>=2.2.0,<3
+fastapi>=0.115.0,<1
+langchain-groq>=1.0.0,<2
+langgraph>=1.0.0,<2
+itsdangerous>=2.2.0,<3
+pydantic>=2.10.0,<3
+pydantic-settings>=2.7.0,<3
+tzdata>=2025.2
+uvicorn[standard]>=0.34.0,<1
+httpx>=0.28.0
+reportlab>=4.0.0

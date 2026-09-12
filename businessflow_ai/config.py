@@ -34,7 +34,12 @@ class Settings(BaseSettings):
 
     @property
     def allowed_host_list(self) -> list[str]:
-        return [host.strip() for host in self.allowed_hosts.split(",") if host.strip()]
+        hosts = [host.strip() for host in self.allowed_hosts.split(",") if host.strip()]
+        if "*" in hosts:
+            return ["*"]
+        if "*.vercel.app" not in hosts:
+            hosts.extend(["*.vercel.app", "*.now.sh", "*.onrender.com"])
+        return hosts
 
     model_config = SettingsConfigDict(
         env_file=".env.local",

@@ -2,10 +2,15 @@
 
 import datetime
 import hashlib
+import os
 import unicodedata
 from pathlib import Path
 
-REPORTS_DIR = Path("output") / "reports"
+REPORTS_DIR = (
+    Path("/tmp/reports")
+    if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
+    else Path("output") / "reports"
+)
 
 
 def _clean_latin1(text: str) -> str:

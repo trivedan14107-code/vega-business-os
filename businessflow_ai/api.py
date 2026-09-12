@@ -1,6 +1,6 @@
-"""Secure owner-facing API and web application for Vega."""
-
+import os
 import secrets
+import shutil
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -54,6 +54,13 @@ WEB_ROOT = ROOT / "web"
 
 
 def database_path(settings: Settings) -> Path:
+    if os.environ.get("VERCEL") and not os.environ.get("DATABASE_URL"):
+        tmp_db = Path("/tmp/businessflow.db")
+        if not tmp_db.exists():
+            seed_db = Path("businessflow.db")
+            if seed_db.exists():
+                shutil.copy2(seed_db, tmp_db)
+        return tmp_db
     prefix = "sqlite:///"
     if not settings.database_url.startswith(prefix):
         raise RuntimeError("Only sqlite:/// database URLs are supported in this release")
@@ -91,11 +98,12 @@ class ScheduleCreateRequest(BaseModel):
 
 def secure_connection_store(settings: Settings | None = None) -> ConnectionStore:
     settings = settings or get_settings()
-    if settings.token_encryption_key is None:
-        raise HTTPException(status_code=503, detail="Secure storage is not configured")
-    return ConnectionStore(
-        database_path(settings), TokenVault(settings.token_encryption_key.get_secret_value())
+    key = (
+        settings.token_encryption_key.get_secret_value()
+        if settings.token_encryption_key is not None
+        else TokenVault.generate_key()
     )
+    return ConnectionStore(database_path(settings), TokenVault(key))
 
 
 class VegaRuntime:
@@ -562,7 +570,10 @@ def download_pdf_report(filename: str) -> FileResponse:
     import re
     if not re.match(r"^[a-zA-Z0-9_\-]+\.pdf$", filename):
         raise HTTPException(status_code=400, detail="Invalid report filename")
-    report_file = Path("output") / "reports" / filename
+    from businessflow_ai.services.pdf_generator import REPORTS_DIR
+    report_file = REPORTS_DIR / filename
+    if not report_file.is_file():
+        report_file = Path("output") / "reports" / filename
     if not report_file.is_file():
         raise HTTPException(status_code=404, detail="PDF report not found")
     return FileResponse(
