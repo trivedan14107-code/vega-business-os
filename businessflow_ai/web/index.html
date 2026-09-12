@@ -23,7 +23,7 @@
         <span class="autopilot-pill"><i></i> Autopilot Online</span>
       </div>
       <nav id="nav-tabs" class="nav-tabs hidden">
-        <button type="button" class="nav-tab active" data-tab="dashboard">📊 Dashboard</button>
+        <button type="button" class="nav-tab active" data-tab="dashboard">💬 Executive Deck</button>
         <button type="button" class="nav-tab" data-tab="playbooks">⚡ Playbooks</button>
         <button type="button" class="nav-tab" data-tab="workforce">👥 Workforce</button>
         <button type="button" class="nav-tab" data-tab="contacts">📖 Contacts CRM</button>
@@ -51,41 +51,9 @@
       <!-- MAIN WORKSPACE -->
       <section id="workspace" class="workspace hidden">
         
-        <!-- KPI METRICS BANNER -->
-        <div class="kpi-banner">
-          <div class="kpi-card">
-            <div class="kpi-icon">⏳</div>
-            <div class="kpi-body">
-              <span id="kpi-hours" class="kpi-value">0.0 hrs</span>
-              <span class="kpi-label">Executive Time Saved</span>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-icon">⚡</div>
-            <div class="kpi-body">
-              <span id="kpi-agents" class="kpi-value">10</span>
-              <span class="kpi-label">Specialist Workforce</span>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-icon">⏱️</div>
-            <div class="kpi-body">
-              <span id="kpi-schedules" class="kpi-value">0</span>
-              <span class="kpi-label">Scheduled Autopilots</span>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-icon">🛡️</div>
-            <div class="kpi-body">
-              <span id="kpi-outcomes" class="kpi-value">0</span>
-              <span class="kpi-label">Verified Outcomes</span>
-            </div>
-          </div>
-        </div>
-
         <div id="notice" class="notice hidden" role="status"></div>
 
-        <!-- HUMAN APPROVAL BANNER -->
+        <!-- HUMAN APPROVAL BANNER (Global) -->
         <section id="approval" class="approval hidden" aria-live="polite">
           <div>
             <div class="eyebrow">HUMAN SIGN-OFF REQUIRED</div>
@@ -98,88 +66,62 @@
           </div>
         </section>
 
-        <!-- TAB 1: EXECUTIVE DASHBOARD -->
+        <!-- TAB 1: EXECUTIVE CHAT DECK -->
         <div id="tab-content-dashboard" class="tab-pane active">
-          <div class="hero">
-            <div>
-              <div class="eyebrow"><i></i> EXECUTIVE COMMAND CENTER</div>
-              <h1>What should we accomplish today?</h1>
-              <p>Type any goal or pick a 1-click playbook. Vega assigns the specialists and executes autonomously.</p>
+          <div class="chat-deck">
+            <div class="chat-deck-header">
+              <div class="chat-deck-title">
+                <span class="deck-avatar">V</span>
+                <div>
+                  <div class="deck-name">Vega AI Chief of Staff</div>
+                  <div class="deck-status"><span class="status-dot"></span> 10 Autonomous Specialists Online · Orchestrating Workspace</div>
+                </div>
+              </div>
+              <div class="chat-deck-actions">
+                <button id="export-btn-dash" class="secondary small-btn" title="Export verified receipts">📥 Export JSON</button>
+                <button id="refresh" class="icon-button" title="Refresh session">↻</button>
+              </div>
             </div>
-            <div style="display:flex;gap:8px;">
-              <button id="export-btn-dash" class="secondary small-btn" title="Export verified receipts">📥 Export JSON</button>
-              <button id="refresh" class="icon-button" title="Refresh dashboard">↻</button>
+
+            <!-- CHAT STREAM -->
+            <div id="chat-stream" class="chat-stream">
+              <!-- Rendered dynamically by app.js -->
+            </div>
+
+            <!-- DOCKED COMPOSER -->
+            <div class="chat-composer-wrap">
+              <div class="quick-bar">
+                <span class="quick-label">⚡ Quick Teammate:</span>
+                <div id="quick-chips" class="quick-chips"></div>
+              </div>
+              
+              <div id="schedule-drawer" class="schedule-drawer hidden">
+                <div class="schedule-header">
+                  <strong>⏱️ Schedule Workflow Autopilot</strong>
+                  <small>Vega will autonomously assemble specialist agents and execute at the scheduled time.</small>
+                </div>
+                <div class="schedule-controls">
+                  <button type="button" class="chip" id="sched-1h">+1 Hour</button>
+                  <button type="button" class="chip" id="sched-tomorrow-9am">Tomorrow 9:00 AM</button>
+                  <button type="button" class="chip" id="sched-tomorrow-2pm">Tomorrow 2:00 PM</button>
+                  <input type="datetime-local" id="sched-custom-time" class="schedule-input">
+                  <button type="button" id="confirm-schedule-btn" class="primary small-btn">Set Schedule</button>
+                </div>
+                <label class="schedule-consent">
+                  <input type="checkbox" id="sched-preapprove">
+                  I approve Vega to perform the external actions described above at the scheduled time.
+                </label>
+              </div>
+
+              <form id="goal-form" class="composer-chat">
+                <textarea id="goal" rows="2" maxlength="2000" required placeholder="Type a business goal... (e.g. Audit unpaid invoices and generate PDF brief, schedule Meet with team, post summary to Slack)"></textarea>
+                <div class="composer-actions">
+                  <button type="button" id="toggle-schedule-btn" class="secondary small-btn" title="Schedule this goal for later">⏱️ Schedule</button>
+                  <button id="send" class="primary" type="submit">Ask Vega <b>→</b></button>
+                </div>
+              </form>
             </div>
           </div>
-
-          <form id="goal-form" class="composer">
-            <textarea id="goal" maxlength="2000" required placeholder="Example: Audit unpaid invoices, schedule client check-in on Google Meet for tomorrow at 10 AM, and post the summary to Slack"></textarea>
-            <div class="quick-bar">
-              <span class="quick-label">⚡ Quick Teammate:</span>
-              <div id="quick-chips" class="quick-chips"></div>
-            </div>
-            <div id="schedule-drawer" class="schedule-drawer hidden">
-              <div class="schedule-header">
-                <strong>⏱️ Schedule Workflow Autopilot</strong>
-                <small>Vega will autonomously assemble specialist agents and execute at the scheduled time.</small>
-              </div>
-              <div class="schedule-controls">
-                <button type="button" class="chip" id="sched-1h">+1 Hour</button>
-                <button type="button" class="chip" id="sched-tomorrow-9am">Tomorrow 9:00 AM</button>
-                <button type="button" class="chip" id="sched-tomorrow-2pm">Tomorrow 2:00 PM</button>
-                <input type="datetime-local" id="sched-custom-time" class="schedule-input">
-                <button type="button" id="confirm-schedule-btn" class="primary small-btn">Set Schedule</button>
-              </div>
-              <label class="schedule-consent">
-                <input type="checkbox" id="sched-preapprove">
-                I approve Vega to perform the external actions described above at the scheduled time.
-              </label>
-            </div>
-            <div class="composer-footer">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <span>Vega verifies outcomes & requires signoff on external updates</span>
-                <button type="button" id="toggle-schedule-btn" class="secondary small-btn" title="Schedule this goal for later">⏱️ Schedule</button>
-              </div>
-              <button id="send" class="primary" type="submit">Ask Vega <b>→</b></button>
-            </div>
-          </form>
-
-          <div class="grid">
-            <section class="panel">
-              <div class="panel-head">
-                <div><div class="eyebrow">AUTONOMOUS SCHEDULER</div><h2>Scheduled Workflows</h2></div>
-                <span id="schedule-count" class="count">0</span>
-              </div>
-              <div id="schedules" class="list empty">No scheduled workflows yet.</div>
-
-              <div style="margin-top: 24px;" class="panel-head">
-                <div><div class="eyebrow">INTEGRATIONS</div><h2>Business Apps Status</h2></div>
-              </div>
-              <div id="connections" class="list"></div>
-            </section>
-
-            <section class="panel">
-              <div class="panel-head">
-                <div><div class="eyebrow">SPECIALIST WORKFORCE</div><h2>Active Agents</h2></div>
-                <span id="agent-count" class="count">0</span>
-              </div>
-              <div id="agents" class="list empty">No active agents yet.</div>
-
-              <div style="margin-top: 24px;" class="panel-head">
-                <div><div class="eyebrow">COMPANY DIRECTORY</div><h2>Quick Contacts</h2></div>
-                <button type="button" class="secondary small-btn" id="goto-contacts-tab">View All →</button>
-              </div>
-              <div id="dash-contacts" class="list"></div>
-            </section>
-          </div>
-
-          <section class="panel activity">
-            <div class="panel-head">
-              <div><div class="eyebrow">CONTROL CENTER</div><h2>Verified Business Outcomes & Activity</h2></div>
-              <button type="button" id="export-btn-tasks" class="secondary small-btn">📥 Export Activity</button>
-            </div>
-            <div id="tasks" class="list empty">Your verified outcomes will appear here.</div>
-          </section>
         </div>
 
         <!-- TAB 2: PLAYBOOKS (1-CLICK TEMPLATES) -->

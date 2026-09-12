@@ -340,50 +340,158 @@ function renderSchedules(schedules) {
   });
 }
 
-function renderTasks(tasks) {
-  const container = $("tasks");
+function renderChatStream(tasks) {
+  const container = $("chat-stream");
   if (!container) return;
   const list = tasks || [];
-  container.className = list.length ? "list" : "list empty";
-  container.innerHTML = list.length ? list.map(task => {
+
+  if (!list.length) {
+    container.innerHTML = `
+      <div class="chat-empty-state">
+        <div class="chat-empty-avatar">V</div>
+        <h2>How can Vega assist your business today?</h2>
+        <p>Your AI Chief of Staff coordinates 10 specialist agents across Google Workspace (Meet, Gmail, Calendar, Sheets) and Slack with autonomous execution, verified PDF briefs, and strict sign-offs.</p>
+        <div class="chat-suggestions-grid">
+          <button type="button" class="chat-suggestion-chip" data-prompt="Audit unpaid invoices in the sales spreadsheet and generate an executive summary PDF brief">
+            <strong>📄 Audit Invoices & PDF Brief</strong>
+            <small>Finance & Sheets Specialist</small>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-prompt="Schedule a 30-minute sprint sync on Google Meet for tomorrow at 10 AM with the team and send calendar invites">
+            <strong>📅 Schedule Google Meet Sync</strong>
+            <small>Calendar & Meet Specialist</small>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-prompt="Summarize recent Slack discussions and generate a cryptographic executive PDF brief">
+            <strong>💬 Slack Summary & PDF Brief</strong>
+            <small>Slack Communications Specialist</small>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-prompt="Draft a cold outreach email sequence to prospects for enterprise product launch">
+            <strong>✉️ Draft Outreach Campaign</strong>
+            <small>Outreach Specialist</small>
+          </button>
+        </div>
+      </div>
+    `;
+
+    container.querySelectorAll(".chat-suggestion-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        const prompt = chip.dataset.prompt;
+        $("goal").value = prompt;
+        $("goal").focus();
+      });
+    });
+    return;
+  }
+
+  // Sort tasks chronologically (oldest at top, newest at bottom)
+  const sortedTasks = [...list].sort((a, b) => new Date(a.created_at || a.updated_at) - new Date(b.created_at || b.updated_at));
+
+  container.innerHTML = sortedTasks.map(task => {
     const results = task.execution_results || [];
-    const otherResults = results;
-    let subagentExtra = "";
-    if (otherResults.length > 0) {
-      subagentExtra = `
-        <div class="subagent-results" style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px; width: 100%;">
-          ${otherResults.map(r => `
-            <div style="padding: 10px 14px; background: #faf9f5; border: 1px solid #e8e6dc; border-radius: 6px; font-size: 0.84rem;">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="color: var(--green); font-size: 12px;">⚙️ ${escapeHtml(humanRole(r.adapter || "Specialist Agent"))}</strong>
-                <span class="badge" style="font-size: 10px;">${escapeHtml(r.outcome_state || "completed")}</span>
+    const isPendingApproval = task.status === "waiting_approval";
+    const threadId = task.thread_id;
+    const taskTime = new Date(task.updated_at || task.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+    let milestonesHtml = "";
+    if (results.length > 0) {
+      milestonesHtml = results.map(r => `
+        <div class="agent-milestone">
+          <div class="agent-milestone-header">
+            <span class="agent-milestone-title">⚙️ ${escapeHtml(humanRole(r.adapter || "Specialist Agent"))}</span>
+            <span class="badge ${escapeHtml(r.outcome_state || 'completed')}" style="font-size:10px;">${escapeHtml(r.outcome_state || 'completed')}</span>
+          </div>
+          <div class="agent-milestone-text">${escapeHtml(r.summary || JSON.stringify(r))}</div>
+          ${r.pdf_url ? `
+            <div class="chat-pdf-box">
+              <div class="chat-pdf-info">
+                <span>📄</span>
+                <span>Executive Brief PDF (SHA-256 Verified)</span>
               </div>
-              <div style="margin-top: 4px; color: #333; white-space: pre-line;">${escapeHtml(r.summary || JSON.stringify(r))}</div>
-              ${r.pdf_url ? `
-                <div style="margin-top: 8px;">
-                  <a href="${escapeHtml(r.pdf_url)}" target="_blank" download class="primary small-btn" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
-                    📄 Download Executive PDF Brief
-                  </a>
-                </div>
-              ` : ''}
+              <a href="${escapeHtml(r.pdf_url)}" target="_blank" download class="primary small-btn" style="text-decoration:none;">
+                📥 Download PDF
+              </a>
             </div>
-          `).join("")}
+          ` : ''}
+        </div>
+      `).join("");
+    } else {
+      milestonesHtml = `
+        <div style="font-size:13px;color:#444;line-height:1.45;">
+          ${isPendingApproval ? "Vega has planned the workflow and assembled specialists. Your sign-off is required before performing external actions." : escapeHtml(task.status.replaceAll("_", " "))}
+        </div>
+      `;
+    }
+
+    let inlineApprovalHtml = "";
+    if (isPendingApproval && threadId) {
+      inlineApprovalHtml = `
+        <div class="chat-approval-inline">
+          <div class="chat-approval-text">
+            <strong>⚠️ Owner Sign-off Required:</strong> Vega is ready to execute external actions.
+          </div>
+          <div class="chat-approval-actions">
+            <button type="button" class="secondary small-btn btn-chat-reject" data-thread="${escapeHtml(threadId)}">Reject</button>
+            <button type="button" class="primary small-btn btn-chat-approve" data-thread="${escapeHtml(threadId)}">Approve & Execute</button>
+          </div>
         </div>
       `;
     }
 
     return `
-    <div class="row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
-      <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-        <div class="row-main">
-          <strong>${escapeHtml(task.owner_goal)}</strong>
-          <small>${new Date(task.updated_at).toLocaleString()}</small>
+      <div class="chat-turn user-turn">
+        <div class="user-bubble">
+          <div class="turn-author">👤 Owner</div>
+          <div class="turn-content">${escapeHtml(task.owner_goal)}</div>
+          <div class="turn-timestamp">${escapeHtml(taskTime)}</div>
         </div>
-        <span class="badge ${escapeHtml(task.status)}">${escapeHtml(task.status.replaceAll("_", " "))}</span>
       </div>
-      ${subagentExtra}
-    </div>`;
-  }).join("") : "Your verified outcomes will appear here.";
+
+      <div class="chat-turn agent-turn">
+        <div class="agent-card">
+          <div class="agent-card-header">
+            <div class="agent-identity">
+              <span class="agent-avatar-mini">V</span>
+              <div>
+                <strong style="font-size:13px;color:var(--ink);">Vega Orchestrator</strong>
+                <small style="display:block;font-size:10px;color:var(--muted);">${escapeHtml(taskTime)}</small>
+              </div>
+            </div>
+            <span class="badge ${escapeHtml(task.status)}">${escapeHtml(task.status.replaceAll('_', ' '))}</span>
+          </div>
+
+          <div class="agent-card-body">
+            ${milestonesHtml}
+            ${inlineApprovalHtml}
+          </div>
+
+          <div class="agent-card-footer">
+            <span>🛡️ Verified Business Outcome</span>
+            <small>Task ID: ${escapeHtml(task.task_id ? task.task_id.slice(0, 8) : 'verified')}</small>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  // Wire inline approve/reject buttons
+  container.querySelectorAll(".btn-chat-approve").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      pendingThread = btn.dataset.thread;
+      await decide(true);
+    });
+  });
+  container.querySelectorAll(".btn-chat-reject").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      pendingThread = btn.dataset.thread;
+      await decide(false);
+    });
+  });
+
+  // Smooth scroll to bottom
+  container.scrollTop = container.scrollHeight;
+}
+
+function renderTasks(tasks) {
+  renderChatStream(tasks);
 }
 
 function renderAuditEvents(events) {
@@ -443,8 +551,8 @@ function handleVega(result) {
   if (result.status === "waiting_approval") {
     pendingThread = result.thread_id;
     const roles = (result.agents || []).map(a => humanRole(a.role)).join(" and ");
-    $("approval-text").textContent = `${roles} will perform an external action. Nothing happens until you approve.`;
-    $("approval").classList.remove("hidden");
+    if ($("approval-text")) $("approval-text").textContent = `${roles} will perform an external action. Nothing happens until you approve.`;
+    if ($("approval")) $("approval").classList.remove("hidden");
   } else if (result.status === "waiting_access") {
     const request = result.access_requests?.[0];
     if (request?.connect_url) {
@@ -452,34 +560,85 @@ function handleVega(result) {
     }
   } else {
     pendingThread = null;
-    $("approval").classList.add("hidden");
+    if ($("approval")) $("approval").classList.add("hidden");
   }
 }
 
 async function submitGoal(event) {
   event.preventDefault();
+  const goalInput = $("goal");
+  const goalText = goalInput.value.trim();
+  if (!goalText) return;
+
   const button = $("send");
   button.disabled = true;
+
+  // Optimistically add user turn and thinking card to chat stream
+  const container = $("chat-stream");
+  if (container) {
+    const emptyState = container.querySelector(".chat-empty-state");
+    if (emptyState) emptyState.remove();
+
+    const userTurn = document.createElement("div");
+    userTurn.className = "chat-turn user-turn";
+    userTurn.innerHTML = `
+      <div class="user-bubble">
+        <div class="turn-author">👤 Owner</div>
+        <div class="turn-content">${escapeHtml(goalText)}</div>
+        <div class="turn-timestamp">Just now</div>
+      </div>
+    `;
+    container.appendChild(userTurn);
+
+    const thinkingTurn = document.createElement("div");
+    thinkingTurn.className = "chat-turn agent-turn temp-thinking";
+    thinkingTurn.innerHTML = `
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-identity">
+            <span class="agent-avatar-mini">V</span>
+            <div><strong style="font-size:13px;color:var(--ink);">Vega Orchestrator</strong><small style="display:block;font-size:10px;color:var(--muted);">Assembling specialists...</small></div>
+          </div>
+          <span class="badge running">Executing</span>
+        </div>
+        <div class="agent-card-body" style="padding:6px 0;color:var(--muted);font-size:13px;">
+          <em>Decomposing goal, checking permissions, and delegating to specialist workforce…</em>
+        </div>
+      </div>
+    `;
+    container.appendChild(thinkingTurn);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  goalInput.value = "";
   notice("Vega is assembling the specialist workforce…");
+
   try {
-    const result = await api("/api/goals", {method:"POST", body:JSON.stringify({goal:$("goal").value.trim()})});
+    const result = await api("/api/goals", {method:"POST", body:JSON.stringify({goal: goalText})});
     handleVega(result);
     await loadDashboard();
-  } catch (error) { notice(error.message, true); }
-  finally { button.disabled = false; }
+  } catch (error) {
+    notice(error.message, true);
+    await loadDashboard();
+  } finally {
+    button.disabled = false;
+  }
 }
 
 async function decide(approved) {
   if (!pendingThread) return;
-  $("approve").disabled = true;
-  $("reject").disabled = true;
+  if ($("approve")) $("approve").disabled = true;
+  if ($("reject")) $("reject").disabled = true;
   notice(approved ? "Vega is executing and verifying the work…" : "Cancelling the action…");
   try {
     const result = await api(`/api/approvals/${encodeURIComponent(pendingThread)}`, {method:"POST", body:JSON.stringify({approved})});
     handleVega(result);
     await loadDashboard();
   } catch (error) { notice(error.message, true); }
-  finally { $("approve").disabled = false; $("reject").disabled = false; }
+  finally {
+    if ($("approve")) $("approve").disabled = false;
+    if ($("reject")) $("reject").disabled = false;
+  }
 }
 
 async function handleAddContact(event) {
@@ -651,10 +810,20 @@ async function init() {
   } catch (error) { notice(error.message, true); $("workspace").classList.remove("hidden"); }
 }
 
-$("goal-form").addEventListener("submit", submitGoal);
-$("approve").addEventListener("click", () => decide(true));
-$("reject").addEventListener("click", () => decide(false));
-$("refresh").addEventListener("click", () => loadDashboard().catch(e => notice(e.message, true)));
+if ($("goal-form")) $("goal-form").addEventListener("submit", submitGoal);
+if ($("approve")) $("approve").addEventListener("click", () => decide(true));
+if ($("reject")) $("reject").addEventListener("click", () => decide(false));
+if ($("refresh")) $("refresh").addEventListener("click", () => loadDashboard().catch(e => notice(e.message, true)));
+
+const goalInputEl = $("goal");
+if (goalInputEl) {
+  goalInputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if ($("goal-form")) $("goal-form").requestSubmit();
+    }
+  });
+}
 
 const toggleBtn = $("toggle-add-contact");
 if (toggleBtn) {
