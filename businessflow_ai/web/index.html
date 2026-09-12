@@ -10,26 +10,38 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Vega">
   <title>Vega · Autonomous Business OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="/static/manifest.webmanifest">
   <link rel="icon" href="/static/vega-icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/static/vega-icon.svg">
-  <link rel="stylesheet" href="/static/app.css">
+  <link rel="stylesheet" href="/static/app.css?v=3.1.0">
 </head>
 <body>
   <div class="shell">
     <header>
       <div class="header-left">
-        <a class="brand" href="/" aria-label="Vega home"><span>V</span> Vega</a>
-        <span class="autopilot-pill"><i></i> Autopilot Online</span>
+        <a class="brand" href="/" aria-label="Vega home">
+          <span class="brand-badge">V</span>
+          <div class="brand-text">
+            <strong>Vega</strong>
+            <small class="brand-sub">Business OS</small>
+          </div>
+        </a>
+        <div class="autopilot-pill">
+          <span class="pulse-beacon"></span>
+          <span>Autopilot Online</span>
+        </div>
       </div>
       <nav id="nav-tabs" class="nav-tabs hidden">
-        <button type="button" class="nav-tab active" data-tab="dashboard">💬 Executive Deck</button>
-        <button type="button" class="nav-tab" data-tab="playbooks">⚡ Playbooks</button>
-        <button type="button" class="nav-tab" data-tab="workforce">👥 Workforce</button>
-        <button type="button" class="nav-tab" data-tab="contacts">📖 Contacts CRM</button>
-        <button type="button" class="nav-tab" data-tab="scheduler">⏱️ Scheduler</button>
-        <button type="button" class="nav-tab" data-tab="audit">🛡️ Audit Trail</button>
-        <button type="button" class="nav-tab" data-tab="settings">⚙️ Integrations</button>
+        <button type="button" class="nav-tab active" data-tab="dashboard">💬 <span>Chat Deck</span></button>
+        <button type="button" class="nav-tab" data-tab="playbooks">⚡ <span>Playbooks</span></button>
+        <button type="button" class="nav-tab" data-tab="workforce">👥 <span>Workforce</span></button>
+        <button type="button" class="nav-tab" data-tab="contacts">📖 <span>CRM</span></button>
+        <button type="button" class="nav-tab" data-tab="scheduler">⏱️ <span>Scheduler</span></button>
+        <button type="button" class="nav-tab" data-tab="audit">🛡️ <span>Audit</span></button>
+        <button type="button" class="nav-tab" data-tab="settings">⚙️ <span>Apps</span></button>
       </nav>
       <div id="account" class="account"></div>
     </header>
@@ -229,6 +241,6 @@
       Vega Business OS · Encrypted OAuth Credentials · Human-In-The-Loop Business Governance
     </footer>
   </div>
-  <script src="/static/app.js" defer></script>
+  <script src="/static/app.js?v=3.1.0" defer></script>
 </body>
 </html>

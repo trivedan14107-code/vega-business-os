@@ -891,9 +891,12 @@ if (contactForm) {
 init();
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {
-      // Vega remains fully usable as a normal mobile website.
-    });
+  window.addEventListener("load", async () => {
+    try {
+      const reg = await navigator.serviceWorker.register("/sw.js?v=3.1.0");
+      if (reg) await reg.update();
+    } catch {
+      // Vega remains fully usable as a normal website.
+    }
   });
 }

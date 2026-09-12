@@ -1,47 +1,38 @@
-const CACHE_NAME = "vega-shell-v1";
-const SHELL_FILES = [
-  "/",
-  "/static/app.css",
-  "/static/app.js",
-  "/static/manifest.webmanifest",
-  "/static/vega-icon.svg",
-];
+const CACHE_NAME = "vega-v3.0.0";
 
-self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL_FILES)));
+self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-self.addEventListener("activate", event => {
+self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)),
-    )),
+    caches.keys().then((keys) =>
+      Promise.all(keys.map((key) => caches.delete(key)))
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-self.addEventListener("fetch", event => {
+self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
 
-  // Authentication, business data, and agent results must never enter the browser cache.
+  // Never cache API calls
   if (url.pathname.startsWith("/api/")) {
     event.respondWith(fetch(request));
     return;
   }
 
-  if (request.mode === "navigate") {
-    event.respondWith(fetch(request).catch(() => caches.match("/")));
-    return;
-  }
-
+  // Network First, fallback to cache
   event.respondWith(
-    caches.match(request).then(cached => cached || fetch(request).then(response => {
-      const copy = response.clone();
-      caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-      return response;
-    })),
+    fetch(request)
+      .then((response) => {
+        if (response && response.status === 200) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        }
+        return response;
+      })
+      .catch(() => caches.match(request))
   );
 });
