@@ -389,7 +389,7 @@ function renderChatStream(tasks) {
     const results = task.execution_results || [];
     const isPendingApproval = task.status === "waiting_approval";
     const isCompleted = task.status === "completed";
-    const threadId = task.thread_id;
+    const threadId = task.thread_id || pendingThread || "";
     const taskTime = new Date(task.updated_at || task.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
     let milestonesHtml = "";
@@ -466,7 +466,7 @@ function renderChatStream(tasks) {
     }
 
     let inlineApprovalHtml = "";
-    if (isPendingApproval && threadId) {
+    if (isPendingApproval) {
       inlineApprovalHtml = `
         <div class="chat-approval-inline">
           <div class="chat-approval-text">
@@ -519,14 +519,18 @@ function renderChatStream(tasks) {
   // Wire inline approve/reject buttons
   container.querySelectorAll(".btn-chat-approve").forEach(btn => {
     btn.addEventListener("click", async () => {
-      pendingThread = btn.dataset.thread;
-      await decide(true);
+      const thread = btn.dataset.thread || pendingThread;
+      btn.disabled = true;
+      btn.textContent = "Executing…";
+      await decide(true, thread);
     });
   });
   container.querySelectorAll(".btn-chat-reject").forEach(btn => {
     btn.addEventListener("click", async () => {
-      pendingThread = btn.dataset.thread;
-      await decide(false);
+      const thread = btn.dataset.thread || pendingThread;
+      btn.disabled = true;
+      btn.textContent = "Cancelling…";
+      await decide(false, thread);
     });
   });
 
@@ -669,16 +673,20 @@ async function submitGoal(event) {
   }
 }
 
-async function decide(approved) {
-  if (!pendingThread) return;
+async function decide(approved, threadId = null) {
+  const target = threadId || pendingThread;
+  if (!target) {
+    notice("No active approval request found.", true);
+    return;
+  }
   if ($("approve")) $("approve").disabled = true;
   if ($("reject")) $("reject").disabled = true;
-  notice(approved ? "Vega is executing and verifying the work…" : "Cancelling the action…");
+  notice(approved ? "Vega is executing and verifying outcomes…" : "Cancelling the action…");
   try {
-    const result = await api(`/api/approvals/${encodeURIComponent(pendingThread)}`, {method:"POST", body:JSON.stringify({approved})});
+    const result = await api(`/api/approvals/${encodeURIComponent(target)}`, {method:"POST", body:JSON.stringify({approved})});
     handleVega(result);
     await loadDashboard();
-  } catch (error) { notice(error.message, true); }
+  } catch (error) { notice(error.message, true); await loadDashboard(); }
   finally {
     if ($("approve")) $("approve").disabled = false;
     if ($("reject")) $("reject").disabled = false;

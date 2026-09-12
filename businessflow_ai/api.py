@@ -167,10 +167,11 @@ class VegaRuntime:
         self.scheduler = VegaSchedulerService(self.registry, self.start_goal, self.decide)
 
     @staticmethod
-    def initial_state(company_id: str, goal: str) -> dict[str, Any]:
+    def initial_state(company_id: str, goal: str, thread_id: str | None = None) -> dict[str, Any]:
         return {
             "company_id": company_id,
             "owner_goal": goal,
+            "thread_id": thread_id,
             "plan": None,
             "resolved_agents": [],
             "task": None,
@@ -202,7 +203,7 @@ class VegaRuntime:
             scheduled_task = self.registry.create_schedule(scheduled)
 
         with self.lock:
-            result = self.graph.invoke(self.initial_state(company_id, goal), config=config)
+            result = self.graph.invoke(self.initial_state(company_id, goal, thread_id), config=config)
             if result.get("__interrupt__"):
                 self.pending_threads[thread_id] = company_id
         res = format_graph_result(result, thread_id)

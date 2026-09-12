@@ -75,6 +75,7 @@ def build_main_agent(
             owner_goal=state["owner_goal"],
             assigned_agent_ids=[agent.agent_id for agent in state["resolved_agents"]],
             requires_approval=requires_approval,
+            thread_id=state.get("thread_id"),
             status=TaskStatus.WAITING_APPROVAL if requires_approval else TaskStatus.PLANNED,
         )
         registry.save_task(task)

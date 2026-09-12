@@ -85,6 +85,7 @@ class TaskExecution(PlatformModel):
     assigned_agent_ids: list[UUID] = Field(default_factory=list)
     status: TaskStatus = TaskStatus.PLANNED
     requires_approval: bool = False
+    thread_id: str | None = None
     access_requests: list[dict[str, Any]] = Field(default_factory=list)
     execution_results: list[dict[str, Any]] = Field(default_factory=list)
     verification_results: list[dict[str, Any]] = Field(default_factory=list)

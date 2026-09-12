@@ -12,6 +12,7 @@ def append_items(left: list[dict], right: list[dict]) -> list[dict]:
 class MainAgentState(TypedDict):
     company_id: str
     owner_goal: str
+    thread_id: str | None
     plan: AgentPlan | None
     resolved_agents: list[AgentDefinition]
     task: TaskExecution | None
