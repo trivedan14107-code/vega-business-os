@@ -1,0 +1,290 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Vega · Autonomous Multi-Agent Operating System for Business Owners">
+  <meta name="theme-color" content="#1b543c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Vega">
+  <title>Vega · Autonomous Business OS</title>
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="icon" href="/static/vega-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/static/vega-icon.svg">
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="header-left">
+        <a class="brand" href="/" aria-label="Vega home"><span>V</span> Vega</a>
+        <span class="autopilot-pill"><i></i> Autopilot Online</span>
+      </div>
+      <nav id="nav-tabs" class="nav-tabs hidden">
+        <button type="button" class="nav-tab active" data-tab="dashboard">📊 Dashboard</button>
+        <button type="button" class="nav-tab" data-tab="playbooks">⚡ Playbooks</button>
+        <button type="button" class="nav-tab" data-tab="workforce">👥 Workforce</button>
+        <button type="button" class="nav-tab" data-tab="contacts">📖 Contacts CRM</button>
+        <button type="button" class="nav-tab" data-tab="scheduler">⏱️ Scheduler</button>
+        <button type="button" class="nav-tab" data-tab="audit">🛡️ Audit Trail</button>
+        <button type="button" class="nav-tab" data-tab="settings">⚙️ Integrations</button>
+      </nav>
+      <div id="account" class="account"></div>
+    </header>
+
+    <main>
+      <!-- WELCOME / LOGIN VIEW -->
+      <section id="welcome" class="welcome hidden">
+        <div class="eyebrow">AUTONOMOUS BUSINESS OPERATING SYSTEM</div>
+        <h1>Tell Vega the outcome.<br><em>Vega runs the business.</em></h1>
+        <p>Your AI Chief of Staff and specialist workforce across Finance, Outreach, Calendar, Sheets, and Slack.</p>
+        <div style="margin: 24px 0; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+          <a class="primary connect" href="/api/oauth/google/start">Continue with Google Workspace</a>
+        </div>
+        <small>Enterprise OAuth 2.0 · End-to-End Encrypted · Owner Human-in-the-Loop Signoff</small>
+      </section>
+
+      <!-- MAIN WORKSPACE -->
+      <section id="workspace" class="workspace hidden">
+        
+        <!-- KPI METRICS BANNER -->
+        <div class="kpi-banner">
+          <div class="kpi-card">
+            <div class="kpi-icon">⏳</div>
+            <div class="kpi-body">
+              <span id="kpi-hours" class="kpi-value">0.0 hrs</span>
+              <span class="kpi-label">Executive Time Saved</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">⚡</div>
+            <div class="kpi-body">
+              <span id="kpi-agents" class="kpi-value">10</span>
+              <span class="kpi-label">Specialist Workforce</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">⏱️</div>
+            <div class="kpi-body">
+              <span id="kpi-schedules" class="kpi-value">0</span>
+              <span class="kpi-label">Scheduled Autopilots</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">🛡️</div>
+            <div class="kpi-body">
+              <span id="kpi-outcomes" class="kpi-value">0</span>
+              <span class="kpi-label">Verified Outcomes</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="notice" class="notice hidden" role="status"></div>
+
+        <!-- HUMAN APPROVAL BANNER -->
+        <section id="approval" class="approval hidden" aria-live="polite">
+          <div>
+            <div class="eyebrow">HUMAN SIGN-OFF REQUIRED</div>
+            <h2>Vega is ready to perform external actions</h2>
+            <p id="approval-text"></p>
+          </div>
+          <div class="approval-actions">
+            <button id="reject" class="secondary">Reject</button>
+            <button id="approve" class="primary">Approve & Execute</button>
+          </div>
+        </section>
+
+        <!-- TAB 1: EXECUTIVE DASHBOARD -->
+        <div id="tab-content-dashboard" class="tab-pane active">
+          <div class="hero">
+            <div>
+              <div class="eyebrow"><i></i> EXECUTIVE COMMAND CENTER</div>
+              <h1>What should we accomplish today?</h1>
+              <p>Type any goal or pick a 1-click playbook. Vega assigns the specialists and executes autonomously.</p>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button id="export-btn-dash" class="secondary small-btn" title="Export verified receipts">📥 Export JSON</button>
+              <button id="refresh" class="icon-button" title="Refresh dashboard">↻</button>
+            </div>
+          </div>
+
+          <form id="goal-form" class="composer">
+            <textarea id="goal" maxlength="2000" required placeholder="Example: Audit unpaid invoices, schedule client check-in on Google Meet for tomorrow at 10 AM, and post the summary to Slack"></textarea>
+            <div class="quick-bar">
+              <span class="quick-label">⚡ Quick Teammate:</span>
+              <div id="quick-chips" class="quick-chips"></div>
+            </div>
+            <div id="schedule-drawer" class="schedule-drawer hidden">
+              <div class="schedule-header">
+                <strong>⏱️ Schedule Workflow Autopilot</strong>
+                <small>Vega will autonomously assemble specialist agents and execute at the scheduled time.</small>
+              </div>
+              <div class="schedule-controls">
+                <button type="button" class="chip" id="sched-1h">+1 Hour</button>
+                <button type="button" class="chip" id="sched-tomorrow-9am">Tomorrow 9:00 AM</button>
+                <button type="button" class="chip" id="sched-tomorrow-2pm">Tomorrow 2:00 PM</button>
+                <input type="datetime-local" id="sched-custom-time" class="schedule-input">
+                <button type="button" id="confirm-schedule-btn" class="primary small-btn">Set Schedule</button>
+              </div>
+              <label class="schedule-consent">
+                <input type="checkbox" id="sched-preapprove">
+                I approve Vega to perform the external actions described above at the scheduled time.
+              </label>
+            </div>
+            <div class="composer-footer">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span>Vega verifies outcomes & requires signoff on external updates</span>
+                <button type="button" id="toggle-schedule-btn" class="secondary small-btn" title="Schedule this goal for later">⏱️ Schedule</button>
+              </div>
+              <button id="send" class="primary" type="submit">Ask Vega <b>→</b></button>
+            </div>
+          </form>
+
+          <div class="grid">
+            <section class="panel">
+              <div class="panel-head">
+                <div><div class="eyebrow">AUTONOMOUS SCHEDULER</div><h2>Scheduled Workflows</h2></div>
+                <span id="schedule-count" class="count">0</span>
+              </div>
+              <div id="schedules" class="list empty">No scheduled workflows yet.</div>
+
+              <div style="margin-top: 24px;" class="panel-head">
+                <div><div class="eyebrow">INTEGRATIONS</div><h2>Business Apps Status</h2></div>
+              </div>
+              <div id="connections" class="list"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <div><div class="eyebrow">SPECIALIST WORKFORCE</div><h2>Active Agents</h2></div>
+                <span id="agent-count" class="count">0</span>
+              </div>
+              <div id="agents" class="list empty">No active agents yet.</div>
+
+              <div style="margin-top: 24px;" class="panel-head">
+                <div><div class="eyebrow">COMPANY DIRECTORY</div><h2>Quick Contacts</h2></div>
+                <button type="button" class="secondary small-btn" id="goto-contacts-tab">View All →</button>
+              </div>
+              <div id="dash-contacts" class="list"></div>
+            </section>
+          </div>
+
+          <section class="panel activity">
+            <div class="panel-head">
+              <div><div class="eyebrow">CONTROL CENTER</div><h2>Verified Business Outcomes & Activity</h2></div>
+              <button type="button" id="export-btn-tasks" class="secondary small-btn">📥 Export Activity</button>
+            </div>
+            <div id="tasks" class="list empty">Your verified outcomes will appear here.</div>
+          </section>
+        </div>
+
+        <!-- TAB 2: PLAYBOOKS (1-CLICK TEMPLATES) -->
+        <div id="tab-content-playbooks" class="tab-pane hidden">
+          <div class="tab-header">
+            <div>
+              <div class="eyebrow">INSTANT EXECUTIVE BLUEPRINTS</div>
+              <h2>1-Click Business Playbooks</h2>
+              <p>Pre-configured autonomous multi-agent pipelines for high-value business workflows.</p>
+            </div>
+          </div>
+          <div id="playbooks-grid" class="playbooks-grid"></div>
+        </div>
+
+        <!-- TAB 3: WORKFORCE STUDIO -->
+        <div id="tab-content-workforce" class="tab-pane hidden">
+          <div class="tab-header">
+            <div>
+              <div class="eyebrow">ORCHESTRATED TALENT</div>
+              <h2>9 Specialist Agent Profiles</h2>
+              <p>Inspect roles, allowed toolsets, strict safety boundaries, and permissions for each specialist.</p>
+            </div>
+          </div>
+          <div id="workforce-grid" class="workforce-grid"></div>
+        </div>
+
+        <!-- TAB 4: CONTACTS CRM -->
+        <div id="tab-content-contacts" class="tab-pane hidden">
+          <div class="tab-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div class="eyebrow">COMPANY DIRECTORY</div>
+              <h2>Teammates & Client Contacts</h2>
+              <p>Manage trusted contacts for email and Google Meet scheduling.</p>
+            </div>
+            <button id="toggle-add-contact" class="primary small-btn">+ Add Contact</button>
+          </div>
+          <form id="contact-form" class="contact-form hidden">
+            <input id="contact-name" type="text" placeholder="Name (e.g. Venu)" required>
+            <input id="contact-role" type="text" placeholder="Role (e.g. Lead Designer)" required>
+            <input id="contact-phone" type="text" placeholder="Phone (optional)">
+            <input id="contact-email" type="email" placeholder="Email (venu@example.com)">
+            <select id="contact-category">
+              <option value="teammate">Teammate</option>
+              <option value="client">Client</option>
+            </select>
+            <input id="contact-notes" type="text" placeholder="Notes (e.g. Key Account, Sprint Lead)">
+            <button type="submit" class="primary small-btn">Save Contact</button>
+          </form>
+          <div id="contacts" class="contacts-grid" style="margin-top: 16px;"></div>
+        </div>
+
+        <!-- TAB 5: SCHEDULER -->
+        <div id="tab-content-scheduler" class="tab-pane hidden">
+          <div class="tab-header">
+            <div>
+              <div class="eyebrow">AUTONOMOUS AUTOPILOT</div>
+              <h2>Scheduled Workflow Manager</h2>
+              <p>Vega's background daemon continuously monitors due schedules and dispatches specialist agent pipelines.</p>
+            </div>
+          </div>
+          <div class="panel" style="margin-top: 16px;">
+            <div class="panel-head">
+              <div><div class="eyebrow">QUEUE</div><h2>Active Schedules</h2></div>
+            </div>
+            <div id="scheduler-full-list" class="list"></div>
+          </div>
+        </div>
+
+        <!-- TAB 6: AUDIT TRAIL & RECEIPTS -->
+        <div id="tab-content-audit" class="tab-pane hidden">
+          <div class="tab-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div class="eyebrow">IMMUTABLE GOVERNANCE</div>
+              <h2>Cryptographic Audit Trail & Verified Receipts</h2>
+              <p>Every tool call, reasoning step, and verified external action is logged with timestamps.</p>
+            </div>
+            <button id="export-btn-audit" class="primary small-btn">📥 Export Full Audit (JSON)</button>
+          </div>
+          <div class="panel" style="margin-top: 16px;">
+            <div id="audit-events-list" class="list"></div>
+          </div>
+        </div>
+
+        <!-- TAB 7: INTEGRATIONS & SETTINGS -->
+        <div id="tab-content-settings" class="tab-pane hidden">
+          <div class="tab-header">
+            <div>
+              <div class="eyebrow">PLATFORM CONNECTIONS</div>
+              <h2>Integrations & Business Channels</h2>
+              <p>Manage authenticated business application connections.</p>
+            </div>
+          </div>
+          <div class="grid" style="margin-top: 16px;">
+            <section class="panel">
+              <div class="panel-head"><div><div class="eyebrow">OAUTH & APIS</div><h2>Connected SaaS Apps</h2></div></div>
+              <div id="settings-connections" class="list"></div>
+            </section>
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+    <footer>
+      Vega Business OS · Encrypted OAuth Credentials · Human-In-The-Loop Business Governance
+    </footer>
+  </div>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

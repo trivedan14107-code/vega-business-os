@@ -1,0 +1,20 @@
+{
+  "name": "Vega Business OS",
+  "short_name": "Vega",
+  "description": "Your AI chief of staff and governed specialist workforce.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f6f5f0",
+  "theme_color": "#1b543c",
+  "icons": [
+    {
+      "src": "/static/vega-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

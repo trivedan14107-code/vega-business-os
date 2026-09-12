@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "businessflow-ai"
+version = "0.1.0"
+description = "Business Second Brain with governed, persistent specialist agents"
+requires-python = ">=3.11"
+dependencies = [
+  "authlib>=1.6,<2",
+  "cryptography>=45,<47",
+  "email-validator>=2.2,<3",
+  "fastapi>=0.115,<1",
+  "langchain-groq>=1,<2",
+  "langgraph>=1,<2",
+  "itsdangerous>=2.2,<3",
+  "pydantic>=2.10,<3",
+  "pydantic-settings>=2.7,<3",
+  "tzdata>=2025.2",
+  "uvicorn[standard]>=0.34,<1",
+]
+
+[project.scripts]
+businessflow-eval = "businessflow_ai.evaluation:main"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3,<9",
+  "ruff>=0.9,<1",
+]
+
+[tool.setuptools.packages.find]
+include = ["businessflow_ai*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

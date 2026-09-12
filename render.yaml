@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: vega-business-os
+    runtime: python
+    plan: 0.5c-512mb
+    numInstances: 1
+    buildCommand: uv sync --frozen --no-dev
+    startCommand: uv run --no-sync uvicorn businessflow_ai.api:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    maxShutdownDelaySeconds: 60
+    disk:
+      name: vega-data
+      mountPath: /opt/render/project/src/storage
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12
+      - key: APP_ENV
+        value: production
+      - key: APP_NAME
+        value: Vega
+      - key: DATABASE_URL
+        value: sqlite:////opt/render/project/src/storage/businessflow.db
+      - key: APP_BASE_URL
+        value: https://vega-business-os.onrender.com
+      - key: ALLOWED_HOSTS
+        value: vega-business-os.onrender.com
+      - key: DEFAULT_COMPANY_ID
+        value: vega-production
+      - key: BUSINESS_TIMEZONE
+        value: Asia/Kolkata
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: TOKEN_ENCRYPTION_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: OWNER_EMAIL
+        sync: false
+

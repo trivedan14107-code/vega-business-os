@@ -1,0 +1,11 @@
+customer_id,name,email,segment,payment_terms_days,active
+C001,Aster Retail,accounts@aster.example.test,Retail,30,true
+C002,BluePeak Foods,finance@bluepeak.example.test,Food Distribution,30,true
+C003,Cedar Works,ap@cedarworks.example.test,Manufacturing,45,true
+C004,Delta Office Supply,billing@deltaoffice.example.test,Wholesale,30,true
+C005,Evergreen Events,owner@evergreenevents.example.test,Services,15,true
+C006,Frontier Logistics,accounts@frontierlogistics.example.test,Logistics,30,true
+C007,Greenline Studios,finance@greenline.example.test,Creative Agency,30,true
+C008,Harbor Hospitality,ap@harborhospitality.example.test,Hospitality,45,true
+C009,Indigo Labs,operations@indigolabs.example.test,Technology,30,true
+C010,Junction Hardware,accounts@junctionhardware.example.test,Retail,30,true

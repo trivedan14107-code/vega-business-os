@@ -1,0 +1,13 @@
+.env
+.env.local
+.venv/
+.uv-cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.sih-build/
+output/
+businessflow.db

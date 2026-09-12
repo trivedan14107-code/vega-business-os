@@ -1,0 +1,12 @@
+message_id,customer_id,invoice_id,sent_at,direction,subject,body
+MSG-0001,C001,INV-0001,2026-07-05T10:15:00+05:30,outbound,Invoice INV-0001 follow-up,Please confirm the expected payment date for invoice INV-0001.
+MSG-0002,C001,INV-0001,2026-07-06T15:30:00+05:30,inbound,Re: Invoice INV-0001 follow-up,The payment is scheduled for next week's payment run.
+MSG-0003,C002,INV-0003,2026-06-18T11:00:00+05:30,inbound,Partial payment for INV-0003,We paid part of the invoice and are checking the remaining delivery items.
+MSG-0004,C003,INV-0005,2026-05-20T09:40:00+05:30,inbound,Dispute on INV-0005,The quantity on line three does not match our goods receipt.
+MSG-0005,C004,INV-0007,2026-06-22T14:05:00+05:30,inbound,Purchase order required,Our accounts team cannot process this invoice without the purchase order number.
+MSG-0006,C005,INV-0009,2026-07-20T16:20:00+05:30,inbound,Remaining amount on INV-0009,We will clear the remaining amount after the event reconciliation is approved.
+MSG-0007,C006,INV-0011,2026-07-15T10:45:00+05:30,outbound,Payment status request,Could you share the payment status for invoice INV-0011?
+MSG-0008,C007,INV-0013,2026-06-08T12:10:00+05:30,inbound,Creative revision dispute,We are holding payment until the final revision is delivered.
+MSG-0009,C008,INV-0015,2026-06-12T17:00:00+05:30,inbound,Balance confirmation,The balance will be included in our next monthly payment batch.
+MSG-0010,C009,INV-0017,2026-07-22T09:15:00+05:30,outbound,Reminder for INV-0017,This is a reminder that invoice INV-0017 is overdue.
+MSG-0011,C010,INV-0020,2026-09-07T13:25:00+05:30,inbound,Payment processing,Invoice INV-0020 has been approved and should be paid within five business days.

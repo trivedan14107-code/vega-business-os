@@ -1,0 +1,20 @@
+display_information:
+  name: Vega Business OS
+  description: Vega coordinates approved business work and team communication.
+  background_color: "#1F2937"
+features:
+  bot_user:
+    display_name: Vega
+    always_online: true
+oauth_config:
+  redirect_urls:
+    - https://85d6701156cfbf.lhr.life/api/oauth/slack/callback
+  scopes:
+    bot:
+      - chat:write
+      - channels:read
+      - groups:read
+settings:
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false
