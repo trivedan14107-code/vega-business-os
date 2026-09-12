@@ -187,6 +187,15 @@ class GoogleWorkspaceExecutionEngine:
         if response.is_error:
             raise RuntimeError(f"Google Calendar rejected the event ({response.status_code})")
         created = response.json()
+        title_text = created.get("summary", details.title)
+        meet_link = created.get("hangoutLink", "")
+        start_fmt = start.strftime("%a, %b %d at %I:%M %p")
+        summary_msg = f"Scheduled Google Meet '{title_text}' on {start_fmt}."
+        if meet_link:
+            summary_msg += f" Meeting link: {meet_link}"
+        if details.attendee_emails:
+            summary_msg += f" Sent calendar invites to {len(details.attendee_emails)} attendee(s)."
+
         return {
             "execution_id": event_id,
             "task_id": task_id,
@@ -196,10 +205,12 @@ class GoogleWorkspaceExecutionEngine:
             "adapter": "google_calendar",
             "action": "meeting.created",
             "success": True,
+            "summary": summary_msg,
+            "outcome_state": "completed",
             "event_id": created.get("id", event_id),
             "event_url": created.get("htmlLink"),
             "meet_url": created.get("hangoutLink"),
-            "title": created.get("summary", details.title),
+            "title": title_text,
             "start_time": created.get("start", {}).get("dateTime", start.isoformat()),
             "attendee_count": len(details.attendee_emails),
         }

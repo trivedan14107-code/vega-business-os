@@ -1,4 +1,4 @@
-﻿"""Real Google Sheets execution behind Vega's approval boundary."""
+"""Real Google Sheets execution behind Vega's approval boundary."""
 
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -217,6 +217,7 @@ class GoogleSheetsExecutionEngine:
         updates = result.get("updates", {})
         spreadsheet_url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}"
 
+        summary_text = f"Logged business operations record to Google Spreadsheet ({category}): '{summary[:100]}'."
         return {
             "execution_id": str(uuid4()),
             "task_id": task_id,
@@ -226,6 +227,8 @@ class GoogleSheetsExecutionEngine:
             "adapter": "google_sheets",
             "action": "spreadsheet.row_appended",
             "success": True,
+            "summary": summary_text,
+            "outcome_state": "completed",
             "spreadsheet_id": spreadsheet_id,
             "spreadsheet_url": spreadsheet_url,
             "updated_range": updates.get("updatedRange", "Log!A:E"),

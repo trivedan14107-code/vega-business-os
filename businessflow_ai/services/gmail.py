@@ -173,6 +173,7 @@ class GmailExecutionEngine:
         message_id = result.get("id", str(uuid4()))
         thread_id = result.get("threadId", message_id)
 
+        summary_text = f"Sent email via Gmail to {recipient} with subject '{subject}'."
         return {
             "execution_id": str(uuid4()),
             "task_id": task_id,
@@ -182,6 +183,8 @@ class GmailExecutionEngine:
             "adapter": "gmail",
             "action": "email.sent",
             "success": True,
+            "summary": summary_text,
+            "outcome_state": "completed",
             "message_id": message_id,
             "thread_id": thread_id,
             "recipient": recipient,

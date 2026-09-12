@@ -388,35 +388,79 @@ function renderChatStream(tasks) {
   container.innerHTML = sortedTasks.map(task => {
     const results = task.execution_results || [];
     const isPendingApproval = task.status === "waiting_approval";
+    const isCompleted = task.status === "completed";
     const threadId = task.thread_id;
     const taskTime = new Date(task.updated_at || task.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
     let milestonesHtml = "";
     if (results.length > 0) {
-      milestonesHtml = results.map(r => `
-        <div class="agent-milestone">
-          <div class="agent-milestone-header">
-            <span class="agent-milestone-title">⚙️ ${escapeHtml(humanRole(r.adapter || "Specialist Agent"))}</span>
-            <span class="badge ${escapeHtml(r.outcome_state || 'completed')}" style="font-size:10px;">${escapeHtml(r.outcome_state || 'completed')}</span>
-          </div>
-          <div class="agent-milestone-text">${escapeHtml(r.summary || JSON.stringify(r))}</div>
-          ${r.pdf_url ? `
-            <div class="chat-pdf-box">
-              <div class="chat-pdf-info">
-                <span>📄</span>
-                <span>Executive Brief PDF (SHA-256 Verified)</span>
-              </div>
-              <a href="${escapeHtml(r.pdf_url)}" target="_blank" download class="primary small-btn" style="text-decoration:none;">
-                📥 Download PDF
-              </a>
+      milestonesHtml = results.map(r => {
+        let summaryText = r.summary;
+        if (!summaryText) {
+          if (r.adapter === "google_calendar") {
+            summaryText = `Scheduled Google Meet '${r.title || "Meeting"}' at ${r.start_time || "scheduled time"}.`;
+          } else if (r.adapter === "google_sheets") {
+            summaryText = `Logged business operations transaction record to Google Spreadsheet.`;
+          } else if (r.adapter === "gmail") {
+            summaryText = `Sent email to ${r.recipient || "client"} regarding '${r.subject || "business update"}'.`;
+          } else if (r.adapter === "slack") {
+            summaryText = `Posted notification update to Slack channel.`;
+          } else {
+            summaryText = `${humanRole(r.role || "Specialist")} verified and executed the milestone.`;
+          }
+        }
+
+        // Action links
+        let linksHtml = "";
+        if (r.meet_url || r.event_url || r.spreadsheet_url) {
+          linksHtml = `
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+              ${r.meet_url ? `<a href="${escapeHtml(r.meet_url)}" target="_blank" class="primary small-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;">🎥 Join Google Meet</a>` : ''}
+              ${r.event_url ? `<a href="${escapeHtml(r.event_url)}" target="_blank" class="secondary small-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;">📅 Calendar Event</a>` : ''}
+              ${r.spreadsheet_url ? `<a href="${escapeHtml(r.spreadsheet_url)}" target="_blank" class="secondary small-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;">📊 Google Sheet</a>` : ''}
             </div>
-          ` : ''}
-        </div>
-      `).join("");
+          `;
+        }
+
+        return `
+          <div class="agent-milestone">
+            <div class="agent-milestone-header">
+              <span class="agent-milestone-title">⚙️ ${escapeHtml(humanRole(r.role || r.adapter || "Specialist Agent"))}</span>
+              <span class="badge ${escapeHtml(r.outcome_state || 'completed')}" style="font-size:10px;">${escapeHtml(r.outcome_state || 'completed')}</span>
+            </div>
+            <div class="agent-milestone-text">${escapeHtml(summaryText)}</div>
+            ${linksHtml}
+            ${r.pdf_url ? `
+              <div class="chat-pdf-box">
+                <div class="chat-pdf-info">
+                  <span>📄</span>
+                  <span>Executive Brief PDF (SHA-256 Verified)</span>
+                </div>
+                <a href="${escapeHtml(r.pdf_url)}" target="_blank" download class="primary small-btn" style="text-decoration:none;">
+                  📥 Download PDF
+                </a>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join("");
     } else {
+      let statusDesc = "";
+      if (isPendingApproval) {
+        statusDesc = "Vega has prepared the workflow and assembled specialists. Your sign-off is required before performing external actions.";
+      } else if (isCompleted) {
+        statusDesc = `✓ Verified and completed autonomous execution for: "${escapeHtml(task.owner_goal)}".`;
+      } else if (task.status === "running") {
+        statusDesc = "⚙️ Specialists are currently executing tasks in the background…";
+      } else if (task.status === "rejected") {
+        statusDesc = "Task execution was cancelled by owner.";
+      } else {
+        statusDesc = escapeHtml(task.status.replaceAll("_", " "));
+      }
+
       milestonesHtml = `
-        <div style="font-size:13px;color:#444;line-height:1.45;">
-          ${isPendingApproval ? "Vega has planned the workflow and assembled specialists. Your sign-off is required before performing external actions." : escapeHtml(task.status.replaceAll("_", " "))}
+        <div style="font-size:13px;color:#333;line-height:1.45;padding:4px 0;">
+          ${statusDesc}
         </div>
       `;
     }
@@ -465,7 +509,7 @@ function renderChatStream(tasks) {
 
           <div class="agent-card-footer">
             <span>🛡️ Verified Business Outcome</span>
-            <small>Task ID: ${escapeHtml(task.task_id ? task.task_id.slice(0, 8) : 'verified')}</small>
+            <small>Task ID: ${escapeHtml(task.task_id ? String(task.task_id).slice(0, 8) : 'verified')}</small>
           </div>
         </div>
       </div>
