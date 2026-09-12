@@ -205,15 +205,19 @@ class ConnectionStore:
             self.get_connection(company_id, OAuthProvider(row["provider"])) for row in rows
         ]
 
+    def has_connection(self, company_id: str, provider: OAuthProvider) -> bool:
+        try:
+            self.get_connection(company_id, provider)
+            return True
+        except KeyError:
+            return False
+
     def available_capabilities(self, company_id: str) -> set[str]:
         available: set[str] = set()
         for connection in self.list_connections(company_id):
             if connection.status != ConnectionStatus.CONNECTED:
                 continue
             capabilities = set(connection.capabilities)
-            if connection.provider == OAuthProvider.SLACK:
-                token = self.get_token(company_id, OAuthProvider.SLACK)
-                if not token.get("default_channel_id"):
-                    capabilities.discard("slack.send")
             available.update(capabilities)
         return available
+

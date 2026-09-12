@@ -28,6 +28,10 @@ ROLE_CAPABILITY_OPTIONS: dict[str, tuple[CapabilityOption, ...]] = {
             OAuthProvider.SLACK,
             frozenset({"slack.send"}),
         ),
+        CapabilityOption(
+            OAuthProvider.GOOGLE_WORKSPACE,
+            frozenset({"gmail.send"}),
+        ),
     ),
     "spreadsheet": (
         CapabilityOption(

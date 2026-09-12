@@ -435,7 +435,7 @@ def demo_login(request: Request, vega: Runtime) -> RedirectResponse:
     request.session["company_id"] = company_id
     request.session["email"] = email
     request.session["csrf_token"] = secrets.token_urlsafe(24)
-    if not vega.store.has_valid_connection(company_id, OAuthProvider.GOOGLE_WORKSPACE):
+    if not vega.store.has_connection(company_id, OAuthProvider.GOOGLE_WORKSPACE):
         now_ts = (datetime.now(UTC) + timedelta(days=365)).timestamp()
         vega.store.save_connection(
             company_id=company_id,
@@ -443,6 +443,15 @@ def demo_login(request: Request, vega: Runtime) -> RedirectResponse:
             token={"access_token": "demo-token", "expires_at": now_ts},
             scopes=["email", "profile", "https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/gmail.send"],
             account_email=email,
+        )
+    if not vega.store.has_connection(company_id, OAuthProvider.SLACK):
+        now_ts = (datetime.now(UTC) + timedelta(days=365)).timestamp()
+        vega.store.save_connection(
+            company_id=company_id,
+            provider=OAuthProvider.SLACK,
+            token={"access_token": "xoxb-demo-token", "expires_at": now_ts, "default_channel_id": "general"},
+            scopes=["chat:write", "channels:read", "groups:read"],
+            account_email="slack-bot@business.com",
         )
     return RedirectResponse("/?connected=demo", 303)
 

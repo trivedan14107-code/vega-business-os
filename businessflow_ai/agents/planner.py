@@ -1,5 +1,6 @@
 """Goal planners used by the Main Agent."""
 
+import unicodedata
 from typing import Protocol
 
 from langchain_groq import ChatGroq
@@ -96,16 +97,6 @@ class RuleBasedGoalPlanner:
                     responsibility="Record and manage the business spreadsheet log",
                 )
             )
-        if (
-            any(w in lowered for w in ("phone", "voice call", "dial", "vapi", "telephony", "make a call"))
-            or (("call " in lowered or "calling " in lowered) and not any(m in lowered for m in ("meeting", "session", "sync", "standup", "huddle", "conference", "schedule", "sales call")))
-        ):
-            specialists.append(
-                SpecialistRequest(
-                    role="voice_calling",
-                    responsibility="Conduct outbound voice phone outreach with contact",
-                )
-            )
         unique = {request.role: request for request in specialists}
 
 
@@ -120,6 +111,32 @@ class RuleBasedGoalPlanner:
         )
 
 
+def _clean_str(text: str) -> str:
+    if not isinstance(text, str):
+        return text
+    normalized = unicodedata.normalize("NFKD", text)
+    for bad, good in [
+        ("\u2010", "-"),
+        ("\u2011", "-"),
+        ("\u2012", "-"),
+        ("\u2013", "-"),
+        ("\u2014", "-"),
+        ("\u2015", "-"),
+        ("\u2018", "'"),
+        ("\u2019", "'"),
+        ("\u201a", "'"),
+        ("\u201b", "'"),
+        ("\u201c", '"'),
+        ("\u201d", '"'),
+        ("\u201e", '"'),
+        ("\u201f", '"'),
+        ("\u2026", "..."),
+        ("\u00a0", " "),
+    ]:
+        normalized = normalized.replace(bad, good)
+    return normalized
+
+
 class GroqGoalPlanner:
     """Groq-backed structured planner restricted to approved specialist roles."""
 
@@ -127,18 +144,34 @@ class GroqGoalPlanner:
 You plan work for a non-technical business owner.
 Return only a structured plan. Select the smallest useful set of specialist roles.
 Allowed roles: meeting, communication, spreadsheet, finance_collection, sales_followup,
-customer_support, inventory, procurement, sales_reporting, voice_calling. Never invent a role,
+customer_support, inventory, procurement, sales_reporting. Never invent a role,
 tool, permission, or completed action.
 The plan only identifies responsibility; deterministic code controls permissions and execution.
 """
 
-
     def __init__(self, api_key: str, model: str) -> None:
         model_client = ChatGroq(api_key=api_key, model=model, temperature=0)
         self._planner = model_client.with_structured_output(AgentPlan)
+        self._fallback = RuleBasedGoalPlanner()
 
     def plan(self, owner_goal: str) -> AgentPlan:
-        result = self._planner.invoke(
-            [("system", self.SYSTEM_PROMPT), ("human", owner_goal)]
-        )
-        return result if isinstance(result, AgentPlan) else AgentPlan.model_validate(result)
+        try:
+            result = self._planner.invoke(
+                [("system", self.SYSTEM_PROMPT), ("human", owner_goal)]
+            )
+            plan = result if isinstance(result, AgentPlan) else AgentPlan.model_validate(result)
+            # Sanitize any exotic unicode returned by model
+            cleaned_specialists = [
+                SpecialistRequest(
+                    role=s.role,
+                    responsibility=_clean_str(s.responsibility),
+                )
+                for s in plan.specialists
+            ]
+            return AgentPlan(
+                intent=_clean_str(plan.intent),
+                summary=_clean_str(plan.summary),
+                specialists=cleaned_specialists,
+            )
+        except Exception:  # noqa: BLE001
+            return self._fallback.plan(owner_goal)
