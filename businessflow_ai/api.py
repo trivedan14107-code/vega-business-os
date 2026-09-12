@@ -508,7 +508,7 @@ def dashboard(
     return jsonable_encoder(
         {
             "connections": vega.store.list_connections(company),
-            "agents": vega.registry.list_agents(company),
+            "agents": vega.registry.ensure_default_agents(company),
             "tasks": vega.registry.list_tasks(company),
             "events": vega.registry.list_events(company),
             "contacts": vega.registry.list_contacts(company),

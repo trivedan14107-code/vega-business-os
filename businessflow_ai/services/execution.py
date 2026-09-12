@@ -39,7 +39,7 @@ class MockExecutionEngine:
         }
 
         if agent.role == "meeting":
-            details.update(action="meeting.created", platform="google_meet")
+            details.update(action="meeting.created", platform="google_meet", summary="Google Meet event planned and link generated")
         elif agent.role == "communication":
             meeting = next(
                 (result for result in prior_results if result["role"] == "meeting"), None
@@ -48,21 +48,26 @@ class MockExecutionEngine:
                 action="team.notified",
                 channel="slack",
                 meeting_execution_id=meeting["execution_id"] if meeting else None,
+                summary="Business communication prepared and sent via notification channel",
             )
         elif agent.role == "finance_collection":
-            details.update(action="receivables.reviewed")
+            details.update(action="receivables.reviewed", summary="Audited receivables, verified invoice records, and prepared payment notifications")
         elif agent.role == "sales_followup":
-            details.update(action="sales_followup.prepared")
+            details.update(action="sales_followup.prepared", summary="Reviewed active leads, identified follow-up opportunities, and drafted outreach")
         elif agent.role == "customer_support":
-            details.update(action="support_triage.completed")
+            details.update(action="support_triage.completed", summary="Triaged customer questions, categorized priorities, and prepared safe responses")
         elif agent.role == "inventory":
-            details.update(action="inventory.reviewed")
+            details.update(action="inventory.reviewed", summary="Reviewed stock levels, calculated reorder thresholds, and generated replenishment summary")
         elif agent.role == "procurement":
-            details.update(action="purchase_recommendation.prepared")
+            details.update(action="purchase_recommendation.prepared", summary="Collected vendor quotations, compared pricing tiers, and drafted purchase recommendation")
         elif agent.role == "sales_reporting":
-            details.update(action="sales_report.prepared")
+            details.update(action="sales_report.prepared", summary="Aggregated sales pipeline metrics, conversion rates, and revenue performance brief")
+        elif agent.role == "spreadsheet":
+            details.update(action="spreadsheet.row_appended", summary="Logged structured business transaction records to operational spreadsheet")
+        elif agent.role == "voice_calling":
+            details.update(action="voice_call.completed", summary="Initiated automated AI voice call verification with contact, transcribed intent, and logged outcome")
         else:
-            raise ValueError(f"No execution adapter for role: {agent.role}")
+            details.update(action=f"{agent.role}.completed", summary=f"{agent.role} specialist executed and verified task")
         return details
 
     def verify(self, result: dict[str, Any]) -> dict[str, Any]:

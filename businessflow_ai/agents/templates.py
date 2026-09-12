@@ -108,6 +108,15 @@ AGENT_TEMPLATES: dict[str, AgentTemplate] = {
         business_rules=("Record accurate business rows and never delete existing sheets without approval",),
         risk_level=RiskLevel.MEDIUM,
     ),
+    "voice_calling": AgentTemplate(
+        role="voice_calling",
+        responsibilities=("Conduct automated AI voice outreach and customer call verification",),
+        allowed_tools=("telephony.dial", "voice.speak", "transcript.record", "owner.notify"),
+        forbidden_tools=("recording.delete", "unauthorized.broadcast"),
+        permissions=("initiate_voice_call", "record_call_summary"),
+        business_rules=("Only dial verified company contacts and record transcripts for compliance",),
+        risk_level=RiskLevel.HIGH,
+    ),
 }
 
 

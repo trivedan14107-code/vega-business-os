@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 from uuid import UUID
 
-from businessflow_ai.agents.templates import AgentTemplate
+from businessflow_ai.agents.templates import AGENT_TEMPLATES, AgentTemplate
 from businessflow_ai.models import (
     AgentDefinition,
     AgentStatus,
@@ -154,6 +154,22 @@ class AgentRegistry:
                 (company_id,),
             ).fetchall()
         return [AgentDefinition.model_validate_json(row["payload"]) for row in rows]
+
+    def ensure_default_agents(self, company_id: str) -> list[AgentDefinition]:
+        """Ensure all 10 specialist agents are provisioned and available for the business."""
+        for template in AGENT_TEMPLATES.values():
+            existing = self.find_agent(company_id, template.role)
+            if not existing:
+                self.create_agent(
+                    company_id=company_id,
+                    template=template,
+                    responsibility=(
+                        template.responsibilities[0]
+                        if template.responsibilities
+                        else "Ready for business operations"
+                    ),
+                )
+        return self.list_agents(company_id)
 
     def save_agent(self, agent: AgentDefinition) -> None:
         with self._connect() as connection:

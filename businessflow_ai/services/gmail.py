@@ -1,4 +1,4 @@
-﻿"""Real Gmail execution behind Vega's approval boundary."""
+"""Real Gmail execution behind Vega's approval boundary."""
 
 import base64
 import re
