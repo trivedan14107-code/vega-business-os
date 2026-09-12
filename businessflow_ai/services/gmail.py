@@ -139,9 +139,13 @@ class GmailExecutionEngine:
         company_id = agent.company_id
         emails = EMAIL_PATTERN.findall(owner_goal)
         if not emails:
-            raise GmailError(
-                "An explicit recipient email is required before Vega can send this message"
-            )
+            send_keywords = ("send", "email", "remind", "mail", "write to", "dispatch", "followup", "follow up")
+            audit_keywords = ("audit", "summary", "summarize", "report", "brief", "research", "analyze", "list")
+            if any(kw in owner_goal.lower() for kw in send_keywords) and not any(kw in owner_goal.lower() for kw in audit_keywords):
+                raise GmailError(
+                    "An explicit recipient email is required before Vega can send this message"
+                )
+            return self.fallback.execute(agent, owner_goal, prior_results, task_id)
         recipient = emails[0]
 
         if agent.role == "finance_collection":

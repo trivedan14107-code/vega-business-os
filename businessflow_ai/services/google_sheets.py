@@ -10,6 +10,7 @@ import httpx
 from businessflow_ai.models import AgentDefinition, OAuthProvider
 from businessflow_ai.services.connections import ConnectionStore
 from businessflow_ai.services.execution import ExecutionEngine, MockExecutionEngine
+from businessflow_ai.services.pdf_generator import ExecutivePDFReportGenerator
 
 GOOGLE_SHEETS_API = "https://sheets.googleapis.com/v4/spreadsheets"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -158,15 +159,17 @@ class GoogleSheetsService:
 
 
 class GoogleSheetsExecutionEngine:
-    """Specialist execution engine for spreadsheet operations and business logging."""
+    """Specialist execution engine for business records stored in Google Sheets."""
 
     def __init__(
         self,
         sheets_service: GoogleSheetsService,
         fallback: ExecutionEngine | None = None,
+        pdf_generator: ExecutivePDFReportGenerator | None = None,
     ) -> None:
         self.sheets_service = sheets_service
         self.fallback = fallback or MockExecutionEngine()
+        self.pdf_generator = pdf_generator or ExecutivePDFReportGenerator()
 
     def execute(
         self,
@@ -218,7 +221,7 @@ class GoogleSheetsExecutionEngine:
         spreadsheet_url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}"
 
         summary_text = f"Logged business operations record to Google Spreadsheet ({category}): '{summary[:100]}'."
-        return {
+        res_payload: dict[str, Any] = {
             "execution_id": str(uuid4()),
             "task_id": task_id,
             "company_id": agent.company_id,
@@ -236,6 +239,25 @@ class GoogleSheetsExecutionEngine:
             "values_appended": row_values,
             "status": "completed",
         }
+
+        is_report_goal = any(
+            w in owner_goal.lower()
+            for w in (
+                "summarise", "summarize", "summary", "pdf", "brief", "research",
+                "audit", "report", "competitor", "compittators", "invoices", "analysis"
+            )
+        )
+        if is_report_goal:
+            _, pdf_url = self.pdf_generator.generate_executive_brief_pdf(
+                task_id=task_id,
+                title="Google Sheets Business Operations Brief",
+                source="Vega Sheets Specialist",
+                summary_text=f"Logged and verified operations entry in Google Spreadsheet.\n• Goal: {owner_goal}\n• Category: {category}\n• Live Spreadsheet URL: {spreadsheet_url}",
+                prefix="vega_sheets_brief",
+            )
+            res_payload["pdf_url"] = pdf_url
+
+        return res_payload
 
     def verify(self, result: dict[str, Any]) -> dict[str, Any]:
         if result.get("adapter") != "google_sheets":

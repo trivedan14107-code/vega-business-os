@@ -217,3 +217,27 @@ class ExecutivePDFReportGenerator:
         filepath.write_bytes(pdf_bytes)
         download_url = f"/api/reports/{filename}"
         return filepath, download_url
+
+    def generate_executive_brief_pdf(
+        self,
+        task_id: str,
+        title: str,
+        source: str,
+        summary_text: str,
+        action_items: list[str] | None = None,
+        prefix: str = "vega_brief",
+    ) -> tuple[Path, str]:
+        """Generate a general executive brief PDF for any task, research, audit, or report."""
+        pdf_bytes = self.build_pdf_bytes(
+            title=title,
+            subtitle="Autonomous business operations & verified outcome brief",
+            channel_or_source=source,
+            summary_text=summary_text,
+            action_items=action_items,
+        )
+        safe_task_id = str(task_id).replace("-", "")[:12]
+        filename = f"{prefix}_{safe_task_id}.pdf"
+        filepath = self.output_dir / filename
+        filepath.write_bytes(pdf_bytes)
+        download_url = f"/api/reports/{filename}"
+        return filepath, download_url

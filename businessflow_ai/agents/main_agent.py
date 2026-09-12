@@ -1,5 +1,6 @@
 """LangGraph implementation of the Business Second Brain Main Agent."""
 
+import logging
 from datetime import UTC, datetime
 
 from langgraph.checkpoint.memory import InMemorySaver
@@ -15,9 +16,12 @@ from businessflow_ai.services import (
     AccessController,
     AgentRegistry,
     ExecutionEngine,
+    ExecutivePDFReportGenerator,
     MockExecutionEngine,
     PolicyEngine,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def build_main_agent(
@@ -241,6 +245,39 @@ def build_main_agent(
                 f"\nGoogle Meet: {meet_url}"
                 f"\nCalendar event: {meeting_result.get('event_url')}"
             )
+        pdf_generator = ExecutivePDFReportGenerator()
+        is_report_goal = any(
+            w in state["owner_goal"].lower()
+            for w in (
+                "summarise", "summarize", "summary", "pdf", "brief", "research",
+                "audit", "report", "competitor", "compittators", "invoices", "analysis"
+            )
+        )
+        has_pdf = any(r.get("pdf_url") for r in state["execution_results"])
+        if is_report_goal and not has_pdf and state.get("task") and state["execution_results"]:
+            try:
+                _, pdf_url = pdf_generator.generate_executive_brief_pdf(
+                    task_id=str(state["task"].task_id),
+                    title="Vega Executive Outcome Brief",
+                    source="Vega Autonomous Specialist Workforce",
+                    summary_text=(
+                        f"Executive Synthesis Brief for '{state['owner_goal']}':\n"
+                        f"• Multi-agent execution completed with: {roles}.\n"
+                        f"• Primary execution adapter: {adapter}."
+                    ),
+                    action_items=[
+                        "Review verified deliverables and stakeholder notes",
+                        "Verify automated background schedule triggers",
+                        "Proceed with operational follow-up items",
+                    ],
+                )
+                updated_results = list(state["execution_results"])
+                updated_results[0] = {**updated_results[0], "pdf_url": pdf_url}
+                task = state["task"].model_copy(update={"execution_results": updated_results})
+                registry.save_task(task)
+            except Exception as exc:  # noqa: BLE001
+                logger.debug("Automatic PDF generation skipped: %s", exc)
+
         return {
             "final_response": (
                 f"Vega completed and verified the work with: {roles}. "
